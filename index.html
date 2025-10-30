@@ -8,6 +8,14 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     html, body, #map { height: 100%; margin: 0; }
+    .info.legend {
+      background: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.4;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
@@ -56,6 +64,17 @@
         ).join("");
     }
 
+    let selectedLayer = null;
+
+    function style(feature) {
+      return {
+        color: "black",
+        weight: 1,
+        fillColor: "#cccccc",
+        fillOpacity: 0.7
+      }
+    }
+
     // Cargar GeoJSON exportado desde QGIS
     fetch('mapa_resultados.geojson')
       .then(res => res.json())
@@ -71,12 +90,50 @@
             layer.bindPopup(`
               <b>Circuito: ${feature.properties.circuito_n}</b><br>
               Localidad: ${feature.properties.cabecera}<br>
-              Electores: ${feature.properties.electores_n}<br>
+              Electores Totales: ${feature.properties.electores_n}<br>
               Participación: ${parseFloat(feature.properties.participacion_n).toFixed(2)}%<br><br>
               ${getPopupContent(feature.properties)}
             `);
+
+            layer.on("click", () => {
+              if(selectedLayer && selectedLayer !== layer) {
+                selectedLayer.setStyle({weight: 0.5, color: "#000"})
+              }
+              layer.setStyle({weight: 5, color: "#e01b24"})
+              selectedLayer = layer
+            })
           }
         }).addTo(map);
+
+        const legend = L.control({ position: "topright" });
+
+        legend.onAdd = function (map) {
+          const div = L.DomUtil.create("div", "info legend");
+          div.innerHTML = `
+            <strong>Intensidad del color</strong><br>
+            <div style="
+              height:10px;
+              width:120px;
+              background:linear-gradient(to right,
+                rgba(0,0,0,0.2),
+                rgba(0,0,0,0.9)
+              );
+              margin-top:4px;">
+            </div>
+            <small>Más opaco → mayor diferencia entre primero y segundo</small><br>
+            <small>Más transparente → elección más pareja</small>
+          `;
+          return div;
+        };
+
+        legend.addTo(map);
+
+        map.on("click", (e) => {
+          if(selectedLayer) {
+            selectedLayer.setStyle({weight: 0.5, color: "#000"})
+            selectedLayer = null
+          }
+        })
       });
   </script>
 </body>
