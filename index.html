@@ -60,7 +60,7 @@
         candidatos.sort((a, b) => b.porcentaje - a.porcentaje);
 
         return candidatos.map(c => 
-            `<div>${c.color} ${c.nombre}: ${c.porcentaje.toFixed(2)}%</div>`
+            `<div>${c.color} ${c.nombre}: ${c.porcentaje.toFixed(1)}%</div>`
         ).join("");
     }
 
