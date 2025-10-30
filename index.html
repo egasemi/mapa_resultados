@@ -6,6 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-search/dist/leaflet-search.min.js"></script>
+  <link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet-search@2.9.8/dist/leaflet-search.min.css"
+/>
   <style>
     html, body, #map { height: 100%; margin: 0; }
     .info.legend {
@@ -79,7 +84,7 @@
     fetch('mapa_resultados.geojson')
       .then(res => res.json())
       .then(data => {
-        L.geoJSON(data, {
+        const Layer = L.geoJSON(data, {
           style: feature => ({
             color: '#000', // borde negro
             weight: 0.5,
@@ -134,6 +139,27 @@
             selectedLayer = null
           }
         })
+
+            // 🔍 Control de búsqueda
+        const searchControl = new L.Control.Search({
+          layer: Layer,
+          propertyName: "cabecera", // por cuál campo buscar
+          initial: false,
+          zoom: 13,
+          marker: false,
+          textPlaceholder: "Buscar localidad"
+        });
+
+        searchControl.on("search:locationfound", function (e) {
+          if (selectedLayer) {
+            selectedLayer.setStyle({ weight: 1, color: "black" });
+          }
+          e.layer.openPopup();
+          e.layer.setStyle({ weight: 3, color: "#ffcc00" });
+          selectedLayer = e.layer;
+        });
+
+        map.addControl(searchControl);
       });
   </script>
 </body>
